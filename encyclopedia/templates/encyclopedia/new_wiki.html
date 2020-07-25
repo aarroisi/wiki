@@ -1,0 +1,28 @@
+{% extends "encyclopedia/layout.html" %}
+
+{% block title %}
+    Encyclopedia: New Wiki Page
+{% endblock %}
+
+{% block body %}
+
+    {% if messages %}
+    {% for message in messages %}
+        <div class="alert alert-danger" role="alert">
+            Warning: {{message|safe}}
+        </div>
+    {% endfor %}
+    {% endif %}
+
+    <h1>Create New Page</h1>
+    <form id="new_wiki" action="{% url 'new_wiki' %}" method="POST">
+        {% csrf_token %}
+        <div class="form-group" style="width: 400px;">
+            <input class="form-control" type="text" name="title" placeholder="Enter title here..">
+        </div>
+        <div class="form-group">
+            <textarea class="form-control" form="new_wiki" rows="5" name="content" placeholder="Enter contents here.."></textarea>
+        </div>
+        <button type="submit" class="btn btn-primary">Create new page</button>
+    </form>
+{% endblock %}

@@ -1,6 +1,11 @@
 from django.shortcuts import render
 from . import util
 import markdown2
+from django.core.files import File
+from django.http import HttpResponseRedirect
+from django.urls import reverse
+from django.contrib import messages
+from random import choice
 
 
 def index(request):
@@ -13,8 +18,8 @@ def entry(request, entry):
         return render(request, "encyclopedia/error404.html")
     else:
         return render(request, "encyclopedia/entry.html", {
-            "title": entry,
-            "entry": markdown2.markdown(util.get_entry(entry))
+            "entry": entry,
+            "content": markdown2.markdown(util.get_entry(entry))
         })
 
 def search(request):
@@ -37,3 +42,35 @@ def search(request):
             return render(request, "encyclopedia/search_result.html", {
                 "entries": close
             })
+
+def new_wiki(request):
+    if request.method == "GET":
+        return render(request, "encyclopedia/new_wiki.html")
+    else:
+        entries = [i.lower() for i in util.list_entries()]
+        title = request.POST['title']
+        content = request.POST['content']
+        content = "# "+title+"\n\n"+content
+        if title.lower() in entries:
+            messages.error(request, 'Entry already exists.')
+            return HttpResponseRedirect(reverse("new_wiki"))
+        else:
+            util.save_entry(title, content)
+            return HttpResponseRedirect(reverse("new_wiki"))
+
+def edit_entry(request, entry):
+    if request.method == "GET":
+        return render(request, "encyclopedia/edit_entry.html", {
+            "entry": entry,
+            "content": util.get_entry(entry)
+        })
+    else:
+        if request.POST['save'] == "1":
+            content = request.POST['content']
+            util.save_entry(entry, content)
+        return HttpResponseRedirect(reverse("entry", kwargs={'entry': entry}))
+
+def random(request):
+    entries = util.list_entries()
+    entry = choice(entries)
+    return HttpResponseRedirect(reverse("entry", kwargs={'entry': entry}))
